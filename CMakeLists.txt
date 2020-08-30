@@ -517,3 +517,42 @@ if (UNITTESTS)
     enable_testing()
     add_test(NAME tester COMMAND $<TARGET_FILE:osqp_tester>)
 endif()
+
+
+## GTest. TODO(paco): port tests to gtest?
+if(CATKIN_ENABLE_TESTING)
+    ## Find catkin dependencies, including test dependencies.
+    find_package(catkin REQUIRED
+      COMPONENTS
+      ${CATKIN_PACKAGE_DEPENDENCIES}
+      )
+
+    catkin_add_gtest(test_${PROJECT_NAME}
+      test/TestOsqp.cpp
+      )
+endif()
+
+## Link GTest.
+if(TARGET test_${PROJECT_NAME})
+    target_link_libraries(test_${PROJECT_NAME}
+      gtest_main
+      ${PROJECT_NAME}
+      )
+
+    target_include_directories(test_${PROJECT_NAME} PRIVATE
+      include
+      )
+
+    target_include_directories(test_${PROJECT_NAME} SYSTEM PUBLIC
+      ${catkin_INCLUDE_DIRS}
+      )
+
+    # Generate test coverage report -> ${PROJECT_BINARY_DIR}/cmake_code_coverage/${PROJECT_NAME}/index.html
+    find_package(cmake_code_coverage QUIET)
+    if(cmake_code_coverage_FOUND)
+        add_gtest_coverage(
+          TEST_BUILD_TARGETS test_${PROJECT_NAME}
+        )
+    endif(cmake_code_coverage_FOUND)
+endif()
+

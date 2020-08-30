@@ -6,6 +6,12 @@
   <maintainer email="fgiraldez@anybotics.com">Francisco Giráldez Gámez</maintainer>
   <license>Apache 2.0</license>
   <author email="yvaind@ethz.ch">Yvain de Viragh</author>
+
   <buildtool_depend>catkin</buildtool_depend>
+
   <depend>qdldl</depend>
+
+  <test_depend>gtest</test_depend>
+<!--   <test_depend>cmake_code_coverage</test_depend> -->
+
 </package>
