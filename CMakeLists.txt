@@ -8,25 +8,30 @@ project (osqp)
 option(BUILD_CATKIN_PACKAGE "Build catkin package" ON)
 
 if(BUILD_CATKIN_PACKAGE)
-##############
-### CATKIN ###
-##############
-# Find Catkin
-find_package(catkin REQUIRED COMPONENTS qdldl
-)
+  ##############
+  ### CATKIN ###
+  ##############
+  # Find Catkin
+  find_package(catkin REQUIRED COMPONENTS qdldl)
 
-# Declare this project as a catkin package
-catkin_package(
- INCLUDE_DIRS include
- LIBRARIES ${PROJECT_NAME}
- CATKIN_DEPENDS qdldl
-# DEPENDS system_lib
-)
+  # Declare this project as a catkin package
+  catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES ${PROJECT_NAME}
+    CATKIN_DEPENDS qdldl
+    # DEPENDS system_lib
+  )
 
-# Set variables
-set(MATLAB OFF)
-set(PYTHON OFF)
-set(R_LANG OFF)
+  # Set variables
+  set(MATLAB OFF)
+  set(PYTHON OFF)
+  set(R_LANG OFF)
+
+  set(CMAKE_INSTALL_BINDIR "${CATKIN_PACKAGE_BIN_DESTINATION}")
+  set(CMAKE_INSTALL_LIBDIR "${CATKIN_PACKAGE_LIB_DESTINATION}")
+  set(CMAKE_INSTALL_INCLUDEDIR "${CATKIN_PACKAGE_INCLUDE_DESTINATION}")
+else()
+  set(CMAKE_INSTALL_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}/osqp")
 endif()
 ##########################################################################
 
@@ -116,7 +121,7 @@ message(STATUS "Code coverage is ${COVERAGE}")
 
 # Linear solvers dependencies
 # ---------------------------------------------
-option (ENABLE_MKL_PARDISO "Enable MKL Pardiso solver" ON)
+option (ENABLE_MKL_PARDISO "Enable MKL Pardiso solver" OFF)
 if (DFLOAT)
 	message(STATUS "Disabling MKL Pardiso Solver with floats")
 	set(ENABLE_MKL_PARDISO OFF)
@@ -334,7 +339,7 @@ target_include_directories(osqpstatic PRIVATE ${linsys_solvers_includes})
 # Declare include directories for the cmake exported target
 target_include_directories(osqpstatic
                            PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                  "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}/osqp>")
+                                  "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
 
 # Install Static Library
 # ----------------------------------------------
@@ -351,7 +356,7 @@ install(TARGETS osqpstatic
 # Install Headers
 # ----------------------------------------------
 
-install(FILES ${osqp_headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/osqp")
+install(FILES ${osqp_headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
 
 
@@ -359,74 +364,74 @@ if (MATLAB)
 target_link_libraries (osqpstatic ${Matlab_LIBRARIES})
 endif (MATLAB)
 
-if(NOT BUILD_CATKIN_PACKAGE) # Leggedrobotics
-# If we are building Python/Matlab/R interface:
-#   - do not build shared library
-#   - do not build demo
-if (NOT PYTHON AND NOT MATLAB AND NOT R_LANG)
-    # Create osqp shared library
-    # NB: Add all the linear system solvers here
-    add_library (osqp SHARED ${osqp_src} ${osqp_headers} ${linsys_solvers})
+if(NOT BUILD_CATKIN_PACKAGE)
+    # If we are building Python/Matlab/R interface:
+    #   - do not build shared library
+    #   - do not build demo
+    if (NOT PYTHON AND NOT MATLAB AND NOT R_LANG)
+        # Create osqp shared library
+        # NB: Add all the linear system solvers here
+        add_library (osqp SHARED ${osqp_src} ${osqp_headers} ${linsys_solvers})
 
-    # Include directories for linear system solvers
-    target_include_directories(osqp PRIVATE ${linsys_solvers_includes})
+        # Include directories for linear system solvers
+        target_include_directories(osqp PRIVATE ${linsys_solvers_includes})
 
     # Declare include directories for the cmake exported target
     target_include_directories(osqp
                                PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                      "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}/osqp>")
+                                      "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
 
-    # Install osqp shared library
-    install(TARGETS osqp
-            EXPORT  ${PROJECT_NAME}
-            LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}")
+        # Install osqp shared library
+        install(TARGETS osqp
+                EXPORT  ${PROJECT_NAME}
+                LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+                ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+                RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
-    # Create demo executable (linked to static library)
-    add_executable (osqp_demo ${PROJECT_SOURCE_DIR}/examples/osqp_demo.c)
-    target_link_libraries (osqp_demo osqpstatic)
+        # Create demo executable (linked to static library)
+        add_executable (osqp_demo ${PROJECT_SOURCE_DIR}/examples/osqp_demo.c)
+        target_link_libraries (osqp_demo osqpstatic)
 
-endif (NOT PYTHON AND NOT MATLAB AND NOT R_LANG)
+    endif (NOT PYTHON AND NOT MATLAB AND NOT R_LANG)
 
-# Create CMake packages for the build directory
-# ----------------------------------------------
-include(CMakePackageConfigHelpers)
+    # Create CMake packages for the build directory
+    # ----------------------------------------------
+    include(CMakePackageConfigHelpers)
 
-export(EXPORT ${PROJECT_NAME}
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/osqp-targets.cmake"
-  NAMESPACE osqp::)
+    export(EXPORT ${PROJECT_NAME}
+      FILE "${CMAKE_CURRENT_BINARY_DIR}/osqp-targets.cmake"
+      NAMESPACE osqp::)
 
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/osqp-config.cmake)
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/osqp-config.cmake "include(\"\${CMAKE_CURRENT_LIST_DIR}/osqp-targets.cmake\")\n")
-endif()
-
-
-# Create CMake packages for the install directory
-# ----------------------------------------------
-
-set(ConfigPackageLocation lib/cmake/osqp)
-
-install(EXPORT ${PROJECT_NAME}
-        FILE osqp-targets.cmake
-        NAMESPACE osqp::
-        DESTINATION ${ConfigPackageLocation})
-
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/osqp-config.cmake
-        DESTINATION ${ConfigPackageLocation})
+    if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/osqp-config.cmake)
+      file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/osqp-config.cmake "include(\"\${CMAKE_CURRENT_LIST_DIR}/osqp-targets.cmake\")\n")
+    endif()
 
 
-# Add uninstall command
-# ----------------------------------------------
-if(NOT TARGET uninstall)
-    configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/configure/cmake/cmake_uninstall.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-        IMMEDIATE @ONLY)
+    # Create CMake packages for the install directory
+    # ----------------------------------------------
 
-    add_custom_target(uninstall
-        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-endif()
+    set(ConfigPackageLocation lib/cmake/osqp)
+
+    install(EXPORT ${PROJECT_NAME}
+            FILE osqp-targets.cmake
+            NAMESPACE osqp::
+            DESTINATION ${ConfigPackageLocation})
+
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/osqp-config.cmake
+            DESTINATION ${ConfigPackageLocation})
+
+
+    # Add uninstall command
+    # ----------------------------------------------
+    if(NOT TARGET uninstall)
+        configure_file(
+            "${CMAKE_CURRENT_SOURCE_DIR}/configure/cmake/cmake_uninstall.cmake.in"
+            "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+            IMMEDIATE @ONLY)
+
+        add_custom_target(uninstall
+            COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+    endif()
 
 else(NOT BUILD_CATKIN_PACKAGE)
 
@@ -455,9 +460,9 @@ install(DIRECTORY include/
 )
 
 install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 ##########################################################################
 endif(NOT BUILD_CATKIN_PACKAGE)
@@ -465,8 +470,9 @@ endif(NOT BUILD_CATKIN_PACKAGE)
 
 # Add testing
 # ----------------------------------------------
-# Add custom command to generate tests
-if (UNITTESTS)
+
+if (UNITTESTS OR CATKIN_ENABLE_TESTING)
+    # Add custom command to generate tests
     find_package(PythonInterp)
     if(NOT PYTHONINTERP_FOUND)
         message( FATAL_ERROR "You need python installed to generate unittests. If you do not want to compile the unittests pass -DUNITTESTS=OFF to cmake." )
@@ -501,16 +507,18 @@ if (UNITTESTS)
         OUTPUT ${codegen_test_headers}
         COMMENT "Generating unittests data files using Python"
     )
+endif()
 
+if (NOT BUILD_CATKIN_PACKAGE AND UNITTESTS)
     # Direct linear solver testing
     include_directories(tests)
     add_executable(osqp_tester
                 ${PROJECT_SOURCE_DIR}/tests/osqp_tester.c
                 ${PROJECT_SOURCE_DIR}/tests/osqp_tester.h
-		${PROJECT_SOURCE_DIR}/tests/minunit.h
+                ${PROJECT_SOURCE_DIR}/tests/minunit.h
                 ${test_headers}
                 ${codegen_test_headers})
-    target_link_libraries (osqp_tester osqpstatic)
+    target_link_libraries (osqp_tester osqpstatic qdldl qdldlobject)
 
     # Add testing
     include(CTest)
@@ -519,40 +527,30 @@ if (UNITTESTS)
 endif()
 
 
-## GTest. TODO(paco): port tests to gtest?
-if(CATKIN_ENABLE_TESTING)
-    ## Find catkin dependencies, including test dependencies.
-    find_package(catkin REQUIRED
-      COMPONENTS
-      ${CATKIN_PACKAGE_DEPENDENCIES}
-      )
-
+if (BUILD_CATKIN_PACKAGE AND CATKIN_ENABLE_TESTING)
+    # GTest need cpp
+    set_property(SOURCE ${PROJECT_SOURCE_DIR}/tests/osqp_tester.c PROPERTY LANGUAGE CXX)
     catkin_add_gtest(test_${PROJECT_NAME}
-      test/TestOsqp.cpp
+      ${PROJECT_SOURCE_DIR}/tests/osqp_tester.c
+      ${test_headers}
+      ${codegen_test_headers}
+    )
+    if(TARGET test_${PROJECT_NAME})
+      target_compile_options(test_${PROJECT_NAME} PRIVATE -DUSE_GTEST=ON)
+      target_include_directories(test_${PROJECT_NAME} PRIVATE
+        include
+        lin_sys
+        ${PROJECT_SOURCE_DIR}/tests
+        ${catkin_INCLUDE_DIRS}
       )
+      target_link_libraries(test_${PROJECT_NAME}
+        osqpstatic
+        ${catkin_LIBRARIES}
+        gtest_main
+      )
+      find_package(cmake_code_coverage QUIET)
+      if(cmake_code_coverage_FOUND)
+        add_gtest_coverage()
+      endif(cmake_code_coverage_FOUND)
+    endif()
 endif()
-
-## Link GTest.
-if(TARGET test_${PROJECT_NAME})
-    target_link_libraries(test_${PROJECT_NAME}
-      gtest_main
-      ${PROJECT_NAME}
-      )
-
-    target_include_directories(test_${PROJECT_NAME} PRIVATE
-      include
-      )
-
-    target_include_directories(test_${PROJECT_NAME} SYSTEM PUBLIC
-      ${catkin_INCLUDE_DIRS}
-      )
-
-    # Generate test coverage report -> ${PROJECT_BINARY_DIR}/cmake_code_coverage/${PROJECT_NAME}/index.html
-    find_package(cmake_code_coverage QUIET)
-    if(cmake_code_coverage_FOUND)
-        add_gtest_coverage(
-          TEST_BUILD_TARGETS test_${PROJECT_NAME}
-        )
-    endif(cmake_code_coverage_FOUND)
-endif()
-

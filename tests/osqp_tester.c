@@ -20,6 +20,9 @@
 #include "unconstrained/test_unconstrained.h"
 #include "update_matrices/test_update_matrices.h"
 
+#ifdef USE_GTEST
+#include <gtest/gtest.h>
+#endif
 
 int tests_run = 0;
 
@@ -37,6 +40,15 @@ static char* all_tests() {
   return 0;
 }
 
+
+#ifdef USE_GTEST
+// Tests for pure Catkin Build
+TEST(OSQP, runAllTests) {  // NOLINT
+  char *result = all_tests();
+  ASSERT_EQ(result, nullptr);
+}
+
+#else
 int main(void) {
   char *result = all_tests();
 
@@ -50,3 +62,4 @@ int main(void) {
 
   return result != 0;
 }
+#endif

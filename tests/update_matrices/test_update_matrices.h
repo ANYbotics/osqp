@@ -23,15 +23,15 @@ static char* test_form_KKT() {
   // Define rho_vec and sigma to form KKT
   sigma       = data->test_form_KKT_sigma;
   m           = data->test_form_KKT_A->m;
-  rho_vec     = c_calloc(m, sizeof(c_float));
-  rho_inv_vec = c_calloc(m, sizeof(c_float));
+  rho_vec     =  (c_float *)c_calloc(m, sizeof(c_float));
+  rho_inv_vec =  (c_float *)c_calloc(m, sizeof(c_float));
   vec_add_scalar(rho_vec, data->test_form_KKT_rho, m);
   vec_ew_recipr(rho_vec, rho_inv_vec, m);
 
   // Allocate vectors of indices
-  PtoKKT = c_malloc((data->test_form_KKT_Pu->p[data->test_form_KKT_Pu->n]) *
+  PtoKKT = (c_int *)c_malloc((data->test_form_KKT_Pu->p[data->test_form_KKT_Pu->n]) *
                     sizeof(c_int));
-  AtoKKT = c_malloc((data->test_form_KKT_A->p[data->test_form_KKT_A->n]) *
+  AtoKKT = (c_int *)c_malloc((data->test_form_KKT_A->p[data->test_form_KKT_A->n]) *
                     sizeof(c_int));
 
   // Form upper triangular part in P
@@ -93,7 +93,7 @@ static char* test_update() {
   data = generate_problem_update_matrices_sols_data();
 
   // Generate first problem data
-  problem    = c_malloc(sizeof(OSQPData));
+  problem    = (OSQPData *)c_malloc(sizeof(OSQPData));
   problem->P = data->test_solve_P;
   problem->q = data->test_solve_q;
   problem->A = data->test_solve_A;
@@ -137,8 +137,8 @@ static char* test_update() {
 
   // Update P
   nnzP       = data->test_solve_Pu->p[data->test_solve_Pu->n];
-  Px_new_idx = c_malloc(nnzP * sizeof(c_int)); // Generate indices going from
-                                               // beginning to end of P
+  Px_new_idx = (c_int *)c_malloc(nnzP * sizeof(c_int)); // Generate indices going from
+                                                        // beginning to end of P
 
   for (i = 0; i < nnzP; i++) {
     Px_new_idx[i] = i;
@@ -166,8 +166,8 @@ static char* test_update() {
 
   // Update A
   nnzA       = data->test_solve_A->p[data->test_solve_A->n];
-  Ax_new_idx = c_malloc(nnzA * sizeof(c_int)); // Generate indices going from
-                                               // beginning to end of P
+  Ax_new_idx = (c_int *)c_malloc(nnzA * sizeof(c_int)); // Generate indices going from
+                                                        // beginning to end of P
 
   for (i = 0; i < nnzA; i++) {
     Ax_new_idx[i] = i;
@@ -254,7 +254,7 @@ static char* test_update_pardiso() {
   data = generate_problem_update_matrices_sols_data();
 
   // Generate first problem data
-  problem    = c_malloc(sizeof(OSQPData));
+  problem    = (OSQPData *)c_malloc(sizeof(OSQPData));
   problem->P = data->test_solve_P;
   problem->q = data->test_solve_q;
   problem->A = data->test_solve_A;
@@ -299,8 +299,8 @@ static char* test_update_pardiso() {
 
   // Update P
   nnzP       = data->test_solve_Pu->p[data->test_solve_Pu->n];
-  Px_new_idx = c_malloc(nnzP * sizeof(c_int)); // Generate indices going from
-                                               // beginning to end of P
+  Px_new_idx = (c_int*)c_malloc(nnzP * sizeof(c_int)); // Generate indices going from
+                                                       // beginning to end of P
 
   for (i = 0; i < nnzP; i++) {
     Px_new_idx[i] = i;
@@ -328,8 +328,8 @@ static char* test_update_pardiso() {
 
   // Update A
   nnzA       = data->test_solve_A->p[data->test_solve_A->n];
-  Ax_new_idx = c_malloc(nnzA * sizeof(c_int)); // Generate indices going from
-                                               // beginning to end of P
+  Ax_new_idx = (c_int*)(c_malloc(nnzA * sizeof(c_int))); // Generate indices going from
+                                                         // beginning to end of P
 
   for (i = 0; i < nnzA; i++) {
     Ax_new_idx[i] = i;

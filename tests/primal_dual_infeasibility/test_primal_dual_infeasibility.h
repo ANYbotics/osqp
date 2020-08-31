@@ -18,7 +18,7 @@ static char* test_optimal()
   data = generate_problem_primal_dual_infeasibility_sols_data();
 
   // Populate problem data
-  problem    = c_malloc(sizeof(OSQPData));
+  problem    = (OSQPData*)c_malloc(sizeof(OSQPData));
   problem->P = data->P;
   problem->q = data->q;
   problem->A = data->A12;
@@ -86,7 +86,7 @@ static char* test_prim_infeas()
   data = generate_problem_primal_dual_infeasibility_sols_data();
 
   // Populate problem data
-  problem    = c_malloc(sizeof(OSQPData));
+  problem    = (OSQPData*)c_malloc(sizeof(OSQPData));
   problem->P = data->P;
   problem->q = data->q;
   problem->A = data->A12;
@@ -138,7 +138,7 @@ static char* test_dual_infeas()
   data = generate_problem_primal_dual_infeasibility_sols_data();
 
   // Populate problem data
-  problem    = c_malloc(sizeof(OSQPData));
+  problem    = (OSQPData*)c_malloc(sizeof(OSQPData));
   problem->P = data->P;
   problem->q = data->q;
   problem->A = data->A34;
@@ -190,7 +190,7 @@ static char* test_primal_dual_infeas()
   data = generate_problem_primal_dual_infeasibility_sols_data();
 
   // Populate problem data
-  problem    = c_malloc(sizeof(OSQPData));
+  problem    = (OSQPData*)c_malloc(sizeof(OSQPData));
   problem->P = data->P;
   problem->q = data->q;
   problem->A = data->A34;
