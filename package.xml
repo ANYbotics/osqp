@@ -13,5 +13,10 @@
 
   <test_depend>gtest</test_depend>
 <!--   <test_depend>cmake_code_coverage</test_depend> -->
+  <test_depend>python</test_depend>
+  <test_depend>python-future</test_depend>
+  <test_depend>python-numpy</test_depend>
+  <test_depend>python-scipy</test_depend>
+
 
 </package>
